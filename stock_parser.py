@@ -2,6 +2,7 @@ from __future__ import print_function
 
 from six.moves import urllib
 
+import json
 import time
 import ssl
 import codecs
@@ -35,6 +36,7 @@ def parseStock():
 
 	substring = alines[start:end]
 
+	result = {}
 	idx = 0
 	while idx < len(alines):
 		nameStart = substring.find("name", idx)
@@ -45,13 +47,17 @@ def parseStock():
 		idx = dataEnd
 		if idx == -1:
 			break
-		name = substring[nameStart:nameEnd][7:-2]
-		data = substring[dataStart:dataEnd][6:-1]
-		print(name)
-		print(data)
 
-		file = open("2317_" + name + ".html", "w")
-		file.write(data)
-		file.close()
+		name = substring[nameStart:nameEnd]
+		name = name[name.find("'") + 1:name.rfind("'")]
+		data = substring[dataStart:dataEnd]
+		data = data[data.find("["):data.rfind("]")+1]
+
+		print(name)
+		result[name] = json.loads(data)
+
+	file = open("2317.html", "w")
+	file.write(json.dumps(result))
+	file.close()
 
 parseStock()
