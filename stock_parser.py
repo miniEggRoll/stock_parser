@@ -39,9 +39,9 @@ def parseStock():
 	result = {}
 	idx = 0
 	while idx < len(alines):
-		nameStart = substring.find("name", idx)
+		nameStart = substring.find("type", idx)
 		nameEnd = substring.find("\r", nameStart)
-		dataStart = substring.find("data", idx)
+		dataStart = substring.find("data", nameEnd)
 		dataEnd = substring.find("\r", dataStart)
 
 		idx = dataEnd
@@ -50,11 +50,19 @@ def parseStock():
 
 		name = substring[nameStart:nameEnd]
 		name = name[name.find("'") + 1:name.rfind("'")]
-		data = substring[dataStart:dataEnd]
-		data = data[data.find("["):data.rfind("]")+1]
+		if name == 'candlestick':
+			data = substring[dataStart:dataEnd]
+			data = data[data.find("["):data.rfind("]")+1]
+			data = json.loads(data)
 
-		print(name)
-		result[name] = json.loads(data)
+			j = 0
+			while j < len(data):
+				tmp = data[j]
+				data[j] = [tmp[0], tmp[4]]
+				j += 1
+				
+
+			result[name] = data
 
 	file = open("2317.html", "w")
 	file.write(json.dumps(result))
