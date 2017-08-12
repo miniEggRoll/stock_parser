@@ -19,7 +19,7 @@ _cookie = None
 _crumb = None
 
 # Headers to fake a user agent
-_headers={
+_headers = {
 	'User-Agent': 'Mozilla/5.0 (X11; U; Linux i686) Gecko/20071127 Firefox/2.0.0.11'
 }
 
@@ -41,18 +41,23 @@ def doJob(*args):
 	while True:
 		if queue.empty():
 			break
-		code = queue.get()
-		data = parseStock(code, datetime.now())
-		with lock:
-			verbose("------------------------------------------------------------------------------")
-			verbose("start checking", code)
-			if filter(data) == True:
-				print("pass", code)
-			else:
-				verbose("fail", code)
-			verbose("------------------------------------------------------------------------------")
-		queue.task_done()
 
+		code = queue.get()
+		try:
+			data = parseStock(code, datetime.datetime.now())
+			with lock:
+				verbose("------------------------------------------------------------------------------")
+				verbose("start checking", code)
+				if filter(data) == True:
+					print("pass", code)
+				else:
+					verbose("fail", code)
+				verbose("------------------------------------------------------------------------------")
+		except Exception as e:
+			with lock:
+				print("error", code, e)
+		finally:
+			queue.task_done()
 
 
 def saveFile(result, filename):
