@@ -156,7 +156,7 @@ def parseStock(numberStr, endDate):
 					k = j - 20
 					elements = []
 					while k < j	:
-						elements.append(data[k][4])
+						elements.append(data[k+1][4])
 						k += 1
 
 					mean = numpy.mean(elements)
