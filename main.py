@@ -50,21 +50,26 @@ def doJob(*args):
 			lastDataDate = datetime.now()
 			data = parseStock(code, lastDataDate)
 			with lock:
-				verbose("------------------------------------------------------------------------------")
+				verbose("******************************************************************************")
 				verbose("start checking", code)
 				passFilter = False
+				verbose("- checking upperBoundFilter -")
 				if upperBoundFilter(data) is True:
 					passFilter = True
 					print("pass upper bound", code)
+				verbose("------------------------------------------------------------------------------")
+				verbose("- checking meanFilter -")
 				if meanFilter(data) is True:
 					passFilter = True
 					print("pass mean", code)
+				verbose("------------------------------------------------------------------------------")
+				verbose("- checking bottomFilter -")
 				if bottomFilter(data) is True:
 					passFilter = True
 					print("pass bottom", code)
 				if passFilter is False:
 					verbose("fail", code)
-				verbose("------------------------------------------------------------------------------")
+				verbose("******************************************************************************")
 		except Exception as e:
 			with lock:
 				print("error", code, e)
@@ -123,6 +128,9 @@ def upperBoundFilter(data):
 
 	today = data[-1]
 	yesterday = data[-2]
+	verbose("time", getTimeFromTimestamp(today["time"]))
+	verbose("20MA today:", today["20MA"], ", yesterday: ", yesterday["20MA"])
+	verbose("bw today:", today["bw"], ", yesterday: ", yesterday["bw"])
 	if today["b"] < 0.8:
 		result = False
 	if today["bw"] - yesterday["bw"] < 0.035:
@@ -151,17 +159,18 @@ def meanFilter(data):
 		if today["b"] > 0.5:
 			result = False
 		i += 1
-	if result is False:
-		return False
 
 	today = data[-1]
 	yesterday = data[-2]
+	verbose("time", getTimeFromTimestamp(today["time"]))
+	verbose("20MA today:", today["20MA"], ", yesterday: ", yesterday["20MA"])
+	verbose("bw today:", today["bw"], ", yesterday: ", yesterday["bw"])
 	if today["b"] < 0.5:
-		return False
+		result = False
 	if today["bw"] < yesterday["bw"]:
-		return False
+		result = False
 
-	return True
+	return result
 
 def bottomFilter(data):
 	return False
