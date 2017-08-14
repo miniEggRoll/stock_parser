@@ -58,21 +58,21 @@ def doJob(*args):
 				verbose("start checking", code)
 				passFilter = False
 				verbose("- checking upperBoundFilter -")
-				if upperBoundFilter(data) is True:
+				if upperBoundFilter(data) == True:
 					passFilter = True
 					print("pass upper bound", code)
 				verbose("------------------------------------------------------------------------------")
 				verbose("- checking meanFilter -")
-				if meanFilter(data) is True:
+				if meanFilter(data) == True:
 					passFilter = True
 					print("pass mean", code)
 				verbose("------------------------------------------------------------------------------")
 				verbose("- checking bottomFilter -")
-				if bottomFilter(data) is True:
+				if bottomFilter(data) == True:
 					passFilter = True
 					print("pass bottom", code)
 				verbose("------------------------------------------------------------------------------")
-				if passFilter is False:
+				if passFilter == False:
 					verbose("fail", code)
 				verbose("******************************************************************************")
 		except Exception as e:
@@ -232,7 +232,8 @@ def parseStock(numberStr, endDate):
 					ub = mean + 2*std
 					lb = mean - 2*std
 					b = 0.5
-					if ub is not lb:
+
+					if ub != lb:
 						b = (price - lb)/(ub - lb)
 
 					result.append({
