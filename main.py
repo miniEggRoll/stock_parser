@@ -260,4 +260,5 @@ def verbose(*msg):
 	if _verbose == True:
 		print(*msg)
 
-app("", "")
+if __name__ == '__main__':
+	app(None, None)
