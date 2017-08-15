@@ -60,17 +60,17 @@ def doJob(*args):
 				verbose("- checking upperBoundFilter -")
 				if upperBoundFilter(data) == True:
 					passFilter = True
-					print("pass upper bound", code)
+					print("pass upper bound", code, graphLink(code))
 				verbose("------------------------------------------------------------------------------")
 				verbose("- checking meanFilter -")
 				if meanFilter(data) == True:
 					passFilter = True
-					print("pass mean", code)
+					print("pass mean", code, graphLink(code))
 				verbose("------------------------------------------------------------------------------")
 				verbose("- checking bottomFilter -")
 				if bottomFilter(data) == True:
 					passFilter = True
-					print("pass bottom", code)
+					print("pass bottom", code, graphLink(code))
 				verbose("------------------------------------------------------------------------------")
 				if passFilter == False:
 					verbose("fail", code)
@@ -181,7 +181,7 @@ def bottomFilter(data):
 	return False
 
 def parseStock(numberStr, endDate):
-	req = urllib.request.Request('https://histock.tw/stock/tchart.aspx?no=' + numberStr + '&m=b', headers=_headers)
+	req = urllib.request.Request(graphLink(numberStr), headers=_headers)
 	gcontext = ssl.SSLContext(ssl.PROTOCOL_TLSv1)  # Only for gangstars
 	f = urllib.request.urlopen(req, context=gcontext)
 	alines = f.read()
@@ -249,6 +249,9 @@ def parseStock(numberStr, endDate):
 					j += 1
 			break
 	return result
+
+def graphLink(code):
+	return 'https://histock.tw/stock/tchart.aspx?m=b&no=' + numberStr
 
 def getTimeFromTimestamp(timestamp):
 	return datetime.fromtimestamp(timestamp/1000)
