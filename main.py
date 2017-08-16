@@ -250,7 +250,7 @@ def parseStock(numberStr, endDate):
 			break
 	return result
 
-def graphLink(code):
+def graphLink(numberStr):
 	return 'https://histock.tw/stock/tchart.aspx?m=b&no=' + numberStr
 
 def getTimeFromTimestamp(timestamp):
