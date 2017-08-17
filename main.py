@@ -82,33 +82,7 @@ def doJob(*args):
 			queue.task_done()
 
 
-def saveFile(result, filename):
-	timeOutput = ""
-	maOutput = ""
-	upperboundOutput = ""
-	lowerboundOutput = ""
 
-	for record in result:
-		timeOutput = timeOutput + str(record["time"]) + ","
-		maOutput = maOutput + str(record["20MA"]) + ","
-		upperboundOutput = upperboundOutput + str(record["upperbound"]) + ","
-		lowerboundOutput = lowerboundOutput + str(record["lowerbound"]) + ","
-
-	timeOutput = timeOutput[0:-1]
-	maOutput = maOutput[0:-1]
-	upperboundOutput = upperboundOutput[0:-1]
-	lowerboundOutput = lowerboundOutput[0:-1]
-
-	file = open(filename, "w")
-	file.write(timeOutput)
-	file.write("\r")
-	file.write(maOutput)
-	file.write("\r")
-	file.write(upperboundOutput)
-	file.write("\r")
-	file.write(lowerboundOutput)
-	file.write("\r")
-	file.close()
 
 
 def upperBoundFilter(data):
