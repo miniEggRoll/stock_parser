@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from __future__ import print_function
 
 from six.moves import urllib
@@ -38,9 +39,11 @@ def app(env, res):
 
 	for idx in range(10):
 		thd = threading.Thread(target=doJob, name="Thd" + str(idx), args=(queue, lock, lastDataDate))
+		thd.daemon = True
 		thd.start()
 
 	thd = threading.Thread(target=queue.join, name="Thd" + str(idx))
+	thd.daemon = True
 	thd.start()
 
 	while thd.isAlive():
