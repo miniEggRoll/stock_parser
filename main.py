@@ -99,6 +99,8 @@ def doJob(*args):
 				verbose("------------------------------------------------------------------------------")
 				if not passFilter:
 					verbose("fail", code)
+				else:
+					verbose("success", code)
 				verbose("******************************************************************************")
 		except Exception as e:
 			with lock:
