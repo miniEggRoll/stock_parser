@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #-*- coding: utf-8 -*-
 from __future__ import print_function
-
+from customLogging import *
 from six.moves import urllib
 
 from datetime import datetime, timedelta
@@ -14,6 +14,7 @@ _emerging = [1240, 1260, 1268, 1269, 1563, 1585, 1587, 1594, 1760, 1780, 1796, 1
 _verbose = "--verbose" in sys.argv
 _companyPrefix = "--company="
 _datePrefix = "--date="
+_filterPrefix = "--filter="
 
 cookier = urllib.request.HTTPCookieProcessor()
 opener = urllib.request.build_opener(cookier)
@@ -36,10 +37,12 @@ def app(env, res):
 	for code in findCompanies():
 		queue.put(str(code))
 
+	filters = findFilters()
 	lastDataDate = findDate()
 
+	print(lastDataDate.date(), *filters)
 	for idx in range(10):
-		thd = threading.Thread(target=doJob, name="Thd" + str(idx), args=(queue, lock, lastDataDate))
+		thd = threading.Thread(target=doJob, name="Thd" + str(idx), args=(queue, lock, lastDataDate, filters))
 		thd.daemon = True
 		thd.start()
 
@@ -49,6 +52,15 @@ def app(env, res):
 
 	while thd.isAlive():
 		thd.join(1)
+def findFilters():
+	filters = None
+	for arg in sys.argv:
+		if arg.startswith(_filterPrefix):
+			filters = arg[len(_filterPrefix):].split(",")
+			break
+	if filters is None:
+		filters = ["upperBound", "mean"]
+	return filters
 
 def findDate():
 	d = None
@@ -73,6 +85,7 @@ def doJob(*args):
 	queue = args[0]
 	lock = args[1]
 	lastDataDate = args[2]
+	filters = args[3]
 	while queue.empty() != True:
 		code = queue.get()
 		try:
@@ -80,29 +93,31 @@ def doJob(*args):
 				continue
 			data = parseStock(code, lastDataDate)
 			with lock:
-				verbose("******************************************************************************")
+				verbose("------------------------------------------------------------------------------")
 				verbose("start checking", code)
 				passFilter = False
-				verbose("- checking upperBoundFilter -")
-				if upperBoundFilter(data):
-					passFilter = True
-					print("pass upper bound", code, graphLink(code))
-				verbose("------------------------------------------------------------------------------")
-				verbose("- checking meanFilter -")
-				if meanFilter(data):
-					passFilter = True
-					print("pass mean", code, graphLink(code))
-				verbose("------------------------------------------------------------------------------")
-				verbose("- checking bottomFilter -")
-				if bottomFilter(data):
-					passFilter = True
-					print("pass bottom", code, graphLink(code))
-				verbose("------------------------------------------------------------------------------")
+				if "upperBound" in filters:
+					verbose("- upperBound -")
+					if upperBoundFilter(data):
+						passFilter = True
+						print("pass upper bound", code, graphLink(code))
+					verbose("")
+				if "mean" in filters:
+					verbose("- mean -")
+					if meanFilter(data):
+						passFilter = True
+						print("pass mean", code, graphLink(code))
+					verbose("")
+				if "bottom" in filters:
+					verbose("- bottom -")
+					if bottomFilter(data):
+						passFilter = True
+						print("pass bottom", code, graphLink(code))
+					verbose("")
 				if not passFilter:
 					verbose("fail", code)
 				else:
 					verbose("success", code)
-				verbose("******************************************************************************")
 		except Exception as e:
 			with lock:
 				print("error", code, e)
