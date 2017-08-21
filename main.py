@@ -184,9 +184,10 @@ def meanFilter(data):
 	verbose("time", getTimeFromTimestamp(today["time"]))
 	verbose("20MA today:", today["20MA"], ", yesterday: ", yesterday["20MA"])
 	verbose("bw today:", today["bw"], ", yesterday: ", yesterday["bw"])
+	verbose("b today:", today["b"], ", yesterday: ", yesterday["b"])
 	if today["b"] < 0.5:
 		result = False
-	if today["bw"] < yesterday["bw"]:
+	if today["bw"] < yesterday["bw"] and abs(today["bw"] - yesterday["bw"]) > 0.005:
 		result = False
 
 	return result
