@@ -1,5 +1,6 @@
-from CustomLogging import verbose
-from util import getTimeFromTimestamp
+from util.log import verbose
+from util.format import parse_timestamp
+
 
 def data_filter(data):
     if len(data) < 4:
@@ -11,7 +12,7 @@ def data_filter(data):
         today = data[i]
         yesterday = data[i - 1]
 
-        verbose("time", getTimeFromTimestamp(today["time"]))
+        verbose("time", parse_timestamp(today["time"]))
         verbose("20MA today:", today["20MA"],
                 ", yesterday: ", yesterday["20MA"])
         verbose("bw today:", today["bw"], ", yesterday: ", yesterday["bw"])
@@ -25,7 +26,7 @@ def data_filter(data):
 
     today = data[-1]
     yesterday = data[-2]
-    verbose("time", getTimeFromTimestamp(today["time"]))
+    verbose("time", parse_timestamp(today["time"]))
     verbose("20MA today:", today["20MA"], ", yesterday: ", yesterday["20MA"])
     verbose("bw today:", today["bw"], ", yesterday: ", yesterday["bw"])
     verbose("b today:", today["b"], ", yesterday: ", yesterday["b"])

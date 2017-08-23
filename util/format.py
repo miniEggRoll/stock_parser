@@ -1,9 +1,9 @@
 from datetime import datetime
 
 
-def getTimeFromTimestamp(timestamp):
+def parse_timestamp(timestamp):
     return datetime.fromtimestamp(timestamp / 1000)
 
 
-def graphLink(numberStr):
-    return 'https://histock.tw/stock/tchart.aspx?m=b&no=' + numberStr
+def graphlink(code):
+    return 'https://histock.tw/stock/tchart.aspx?m=b&no=' + code

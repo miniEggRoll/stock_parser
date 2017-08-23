@@ -1,30 +1,33 @@
-from six.moves import urllib
-from datetime import datetime, timedelta
 import json
-import numpy
 import ssl
-from util import getTimeFromTimestamp, graphLink
+from datetime import timedelta
 
-cookier = urllib.request.HTTPCookieProcessor()
-opener = urllib.request.build_opener(cookier)
-urllib.request.install_opener(opener)
+import numpy
+
+from six.moves import urllib
+from util.format import parse_timestamp, graphlink
+
+COOKIER = urllib.request.HTTPCookieProcessor()
+OPENER = urllib.request.build_opener(COOKIER)
+urllib.request.install_opener(OPENER)
 # Headers to fake a user agent
-_headers = {
+HEADERS = {
     'User-Agent': 'Mozilla/5.0 (X11; U; Linux i686) Gecko/20071127 Firefox/2.0.0.11'
 }
 
 
-class HiStock:
-    def __init__(self, stockCode, endDate):
-        self.stockCode = stockCode
-        self.endDate = endDate
+class HiStock(object):
+    def __init__(self, stock_code, end_date):
+        self.stock_code = stock_code
+        self.end_date = end_date
+        self.result = []
 
-    def pullData(self):
+    def pull(self):
         req = urllib.request.Request(
-            graphLink(self.stockCode), headers=_headers)
+            graphlink(self.stock_code), headers=HEADERS)
         gcontext = ssl.SSLContext(ssl.PROTOCOL_TLSv1)  # Only for gangstars
-        f = urllib.request.urlopen(req, context=gcontext)
-        alines = f.read()
+        res = urllib.request.urlopen(req, context=gcontext)
+        alines = res.read()
 
         start = alines.find("series: [{")
         end = alines.find("</script>", start)
@@ -33,19 +36,19 @@ class HiStock:
         result = []
         idx = 0
         while idx < len(alines):
-            nameStart = substring.find("type", idx)
-            nameEnd = substring.find("\r", nameStart)
-            dataStart = substring.find("data", nameEnd)
-            dataEnd = substring.find("\r", dataStart)
+            name_start = substring.find("type", idx)
+            name_end = substring.find("\r", name_start)
+            data_start = substring.find("data", name_end)
+            data_end = substring.find("\r", data_start)
 
-            idx = dataEnd
+            idx = data_end
             if idx == -1:
                 break
 
-            name = substring[nameStart:nameEnd]
+            name = substring[name_start:name_end]
             name = name[name.find("'") + 1:name.rfind("'")]
             if name == 'candlestick':
-                data = substring[dataStart:dataEnd]
+                data = substring[data_start:data_end]
                 data = data[data.find("["):data.rfind("]") + 1]
                 data = json.loads(data)
 
@@ -55,7 +58,7 @@ class HiStock:
                     while j < len(data):
                         k = j - 20
                         elements = []
-                        while k < j	:
+                        while k < j:
                             elements.append(data[k + 1][4])
                             k += 1
 
@@ -63,27 +66,28 @@ class HiStock:
                         std = numpy.std(elements)
 
                         time = data[j][0]
-                        if getTimeFromTimestamp(time) > self.endDate + timedelta(days=1):
+                        if parse_timestamp(time) > self.end_date + timedelta(days=1):
                             j += 1
                             continue
 
                         price = data[j][4]
-                        ub = mean + 2 * std
-                        lb = mean - 2 * std
-                        b = 0.5
+                        upperbound = mean + 2 * std
+                        lowerbound = mean - 2 * std
+                        percent_b = 0.5
 
-                        if ub != lb:
-                            b = (price - lb) / (ub - lb)
+                        if upperbound != lowerbound:
+                            percent_b = (price - lowerbound) / \
+                                (upperbound - lowerbound)
 
                         result.append({
                             "time": time,
                             "price": price,
                             "20MA": mean,
                             "std": std,
-                            "upperbound": ub,
-                            "lowerbound": lb,
-                            "b": b,
-                            "bw": (ub - lb) / mean
+                            "upperbound": upperbound,
+                            "lowerbound": lowerbound,
+                            "b": percent_b,
+                            "bw": (upperbound - lowerbound) / mean
                         })
                         j += 1
                 break
