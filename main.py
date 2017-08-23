@@ -3,9 +3,9 @@
 
 from __future__ import print_function
 from datetime import datetime, timedelta
-from dataSource.HiStock import HiStock
+from datasource.HiStock import HiStock
 from CustomLogging import verbose
-from trend import UpperBound, Mean
+from trend import upperbound, mean
 from util import getTimeFromTimestamp, graphLink
 import time, codecs, threading, Queue, sys, signal
 
@@ -93,13 +93,13 @@ def doJob(*args):
 				passFilter = False
 				if "upperBound" in filters:
 					verbose("- upperBound -")
-					if UpperBound.data_filter(data):
+					if upperbound.data_filter(data):
 						passFilter = True
 						print("pass upper bound", code, graphLink(code))
 					verbose("")
 				if "mean" in filters:
 					verbose("- mean -")
-					if Mean.data_filter(data):
+					if mean.data_filter(data):
 						passFilter = True
 						print("pass mean", code, graphLink(code))
 					verbose("")
@@ -109,7 +109,8 @@ def doJob(*args):
 					verbose("success", code)
 		except Exception as e:
 			with lock:
-				print("error", code, e)
+				print(e)
+				print("error", code)
 		finally:
 			queue.task_done()
 
