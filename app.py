@@ -62,29 +62,28 @@ class App(object):
                     verbose(
                         "---------------------------------------------------------------------")
                     verbose("start checking", code)
-                    passed = False
-                    if transaction.data_filter(data):
-                        if "upperBound" in filters:
-                            verbose("- upperBound -")
-                            if upperbound.data_filter(data):
-                                passed = True
-                                print("pass upper bound",
-                                      code, graphlink(code))
-                            verbose("")
-                        if "mean" in filters:
-                            verbose("- mean -")
-                            if mean.data_filter(data):
-                                passed = True
-                                print("pass mean", code, graphlink(code))
-                            verbose("")
-                    else:
-                        today = data[-1]
-                        verbose("do not pass transaction, transaction count:",
-                                today["transaction_count"], ", price: ", today["price"])
-                    if not passed:
+                    pass_upperbound = False
+                    pass_mean = False
+                    if "upperBound" in filters:
+                        pass_upperbound = upperbound.data_filter(data)
+                    if "mean" in filters:
+                        pass_mean = mean.data_filter(data)
+                    if not (pass_mean or pass_upperbound):
                         verbose("fail", code)
                     else:
-                        verbose("success", code)
+                        passed_filters = ""
+                        if pass_mean:
+                            passed_filters += "mean "
+                        if pass_upperbound:
+                            passed_filters += "upperbound "
+                        warning = ""
+                        if not transaction.data_filter(data):
+                            today = data[-1]
+                            warning = " do not pass transaction, transaction count:" + \
+                                str(today["transaction_count"]) + \
+                                ", price: " + str(today["price"]) + ", "
+                        print("success:" + passed_filters +
+                              code + ", " + warning + graphlink(code))
             except Exception as exception:
                 with lock:
                     print(exception)
