@@ -2,6 +2,16 @@ from util.log import verbose
 from util.format import parse_timestamp
 
 
+def log(today, yesterday):
+    verbose("-------------")
+    verbose("time", parse_timestamp(today["time"]))
+    verbose("20MA today:", today["20MA"],
+            ", yesterday: ", yesterday["20MA"])
+    verbose("bw today:", today["bw"], ", yesterday: ", yesterday["bw"])
+    verbose("transaction today:", today["transaction_count"],
+            ", yesterday:", yesterday["transaction_count"])
+
+
 def data_filter(data):
     if len(data) < 4:
         return False
@@ -12,11 +22,7 @@ def data_filter(data):
         today = data[i]
         yesterday = data[i - 1]
 
-        verbose("time", parse_timestamp(today["time"]))
-        verbose("20MA today:", today["20MA"],
-                ", yesterday: ", yesterday["20MA"])
-        verbose("bw today:", today["bw"], ", yesterday: ", yesterday["bw"])
-
+        log(today, yesterday)
         if today["bw"] > 0.2:
             result = False
 
@@ -26,10 +32,7 @@ def data_filter(data):
 
     today = data[-1]
     yesterday = data[-2]
-    verbose("time", parse_timestamp(today["time"]))
-    verbose("20MA today:", today["20MA"], ", yesterday: ", yesterday["20MA"])
-    verbose("bw today:", today["bw"], ", yesterday: ", yesterday["bw"])
-    verbose("b today:", today["b"], ", yesterday: ", yesterday["b"])
+    log(today, yesterday)
     if today["b"] < 0.9:
         result = False
     if today["bw"] - yesterday["bw"] < 0.035:

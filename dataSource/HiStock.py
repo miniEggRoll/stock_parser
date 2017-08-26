@@ -1,3 +1,4 @@
+#-*- coding: utf-8 -*-
 import json
 import ssl
 from datetime import timedelta
@@ -57,8 +58,56 @@ class HiStock(object):
             raw = self.download()
             self.write(raw)
 
-        data = json.loads(raw)
-        self.parse(data)
+        price_raw = self.extract_price_raw(raw)
+        transaction_raw = self.extract_transaction_raw(raw)
+
+        price_data = json.loads(price_raw)
+        transaction_data = json.loads(transaction_raw)
+        self.parse(price_data, transaction_data)
+
+    def extract_price_raw(self, raw):
+        idx = 0
+        while idx < len(raw):
+            name_start = raw.find("type", idx)
+            name_end = raw.find("\r", name_start)
+            data_start = raw.find("data", name_end)
+            data_end = raw.find("\r", data_start)
+
+            idx = data_end
+            if idx == -1:
+                break
+
+            name = raw[name_start:name_end]
+            name = name[name.find("'") + 1:name.rfind("'")]
+            if name == 'candlestick':
+                price_raw = raw[data_start:data_end]
+                price_raw = price_raw[price_raw.find(
+                    "["):price_raw.rfind("]") + 1]
+                return price_raw
+        raise Exception("problem parsing price, " + self.stock_code)
+
+    def extract_transaction_raw(self, raw):
+        idx = 0
+        while idx < len(raw):
+            type_start = raw.find("type", idx)
+            type_end = raw.find("\r", type_start)
+            name_start = raw.find("name", type_end)
+            name_end = raw.find("\r", name_start)
+            data_start = raw.find("data", type_end)
+            data_end = raw.find("\r", data_start)
+
+            idx = data_end
+            if idx == -1:
+                break
+
+            name = raw[name_start:name_end]
+            name = name[name.find("'") + 1:name.rfind("'")]
+            if name == '成交量(張)':
+                transaction_raw = raw[data_start:data_end]
+                transaction_raw = transaction_raw[transaction_raw.find(
+                    "["):transaction_raw.rfind("]") + 1]
+                return transaction_raw
+        raise Exception("problem parsing transaction," + self.stock_code)
 
     def download(self):
         req = urllib.request.Request(
@@ -70,46 +119,30 @@ class HiStock(object):
         end = alines.find("</script>", start)
 
         substring = alines[start:end]
-        idx = 0
-        while idx < len(substring):
-            name_start = substring.find("type", idx)
-            name_end = substring.find("\r", name_start)
-            data_start = substring.find("data", name_end)
-            data_end = substring.find("\r", data_start)
+        return substring
 
-            idx = data_end
-            if idx == -1:
-                break
-
-            name = substring[name_start:name_end]
-            name = name[name.find("'") + 1:name.rfind("'")]
-            if name == 'candlestick':
-                raw = substring[data_start:data_end]
-                raw = raw[raw.find("["):raw.rfind("]") + 1]
-                return raw
-        raise Exception("problem downloading " + self.stock_code)
-
-    def parse(self, data):
+    def parse(self, price_data, transaction_data):
         result = []
-        if len(data) >= 20:
-            j = max(20, len(data) - 180)
+        if len(price_data) >= 20:
+            j = max(20, len(price_data) - 180)
 
-            while j < len(data):
+            while j < len(price_data):
+                transaction_count = transaction_data[j][1]
                 k = j - 20
                 elements = []
                 while k < j:
-                    elements.append(data[k + 1][4])
+                    elements.append(price_data[k + 1][4])
                     k += 1
 
                 mean = numpy.mean(elements)
                 std = numpy.std(elements)
 
-                time = data[j][0]
+                time = price_data[j][0]
                 if parse_timestamp(time) > self.end_date + timedelta(days=1):
                     j += 1
                     continue
 
-                price = data[j][4]
+                price = price_data[j][4]
                 upperbound = mean + 2 * std
                 lowerbound = mean - 2 * std
                 percent_b = 0.5
@@ -126,7 +159,8 @@ class HiStock(object):
                     "upperbound": upperbound,
                     "lowerbound": lowerbound,
                     "b": percent_b,
-                    "bw": (upperbound - lowerbound) / mean
+                    "bw": (upperbound - lowerbound) / mean,
+                    "transaction_count": transaction_count
                 })
                 j += 1
         self.result = result

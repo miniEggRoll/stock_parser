@@ -5,7 +5,7 @@ import threading
 from datetime import datetime
 
 from datasource.histock import HiStock
-from trend import mean, upperbound
+from trend import mean, upperbound, transaction
 from util.format import graphlink
 from util.log import verbose
 
@@ -63,18 +63,24 @@ class App(object):
                         "---------------------------------------------------------------------")
                     verbose("start checking", code)
                     passed = False
-                    if "upperBound" in filters:
-                        verbose("- upperBound -")
-                        if upperbound.data_filter(data):
-                            passed = True
-                            print("pass upper bound", code, graphlink(code))
-                        verbose("")
-                    if "mean" in filters:
-                        verbose("- mean -")
-                        if mean.data_filter(data):
-                            passed = True
-                            print("pass mean", code, graphlink(code))
-                        verbose("")
+                    if transaction.data_filter(data):
+                        if "upperBound" in filters:
+                            verbose("- upperBound -")
+                            if upperbound.data_filter(data):
+                                passed = True
+                                print("pass upper bound",
+                                      code, graphlink(code))
+                            verbose("")
+                        if "mean" in filters:
+                            verbose("- mean -")
+                            if mean.data_filter(data):
+                                passed = True
+                                print("pass mean", code, graphlink(code))
+                            verbose("")
+                    else:
+                        today = data[-1]
+                        verbose("do not pass transaction, transaction count:",
+                                today["transaction_count"], ", price: ", today["price"])
                     if not passed:
                         verbose("fail", code)
                     else:
