@@ -71,19 +71,18 @@ class App(object):
                     if not (pass_mean or pass_upperbound):
                         verbose("fail", code)
                     else:
-                        passed_filters = ""
+                        passed_filters = []
                         if pass_mean:
-                            passed_filters += "mean "
+                            passed_filters.append("mean")
                         if pass_upperbound:
-                            passed_filters += "upperbound "
+                            passed_filters.append("upperbound")
                         warning = ""
                         if not transaction.data_filter(data):
                             today = data[-1]
-                            warning = " do not pass transaction, transaction count:" + \
-                                str(today["transaction_count"]) + \
-                                ", price: " + str(today["price"]) + ", "
-                        print("success:" + passed_filters +
-                              code + ", " + warning + graphlink(code))
+                            warning = "do not pass transaction, transaction count: {}, price: {}".format(
+                                today["transaction_count"], today["price"])
+                        print("{} success: {}, {}, {}".format(
+                            code, ",".join(passed_filters), warning, graphlink(code)))
             except Exception as exception:
                 with lock:
                     print(exception)
