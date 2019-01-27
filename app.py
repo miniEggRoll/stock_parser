@@ -9,6 +9,11 @@ from trend import mean, upperbound, transaction
 from util.format import graphlink
 from util.log import verbose
 
+from linebot import LineBotApi
+from linebot.models import TextSendMessage
+from linebot.exceptions import LineBotApiError
+
+userIds = ['U0b9a29328a8edbbedfd0400027099c1e', 'U2c645d5f7b78b06a42570d9cfa368531']
 
 class App(object):
     def __init__(self, lock):
@@ -18,8 +23,10 @@ class App(object):
         self.companies = []
         self.date = datetime.now()
         self.queue = Queue.Queue()
+        self.messages = []
+        self.line_bot_api = LineBotApi('EDD0bDPnx6BFcQVZ2V9MBi7emSgOWvtAasXFDZUGEaDlbUJA6/EP+y9rWUijcbfsqGH/5eICtCXhuTxCsOr0A+cn/C0bJour8lz4skjyqsNPyUEJcueGQ6fWJQvTR2rrFoFMKCvr9O8xoMWY3GR04AdB04t89/1O/w1cDnyilFU=')
 
-    def stop(self):
+    def stop(self, sig, stack):
         print("stop app...")
         self.alive = False
 
@@ -41,8 +48,25 @@ class App(object):
         thd.daemon = True
         thd.start()
 
-        while thd.isAlive():
+        while thd.isAlive() and self.alive:
             thd.join(1)
+
+        self.appWillStop()
+
+    def appWillStop(self):
+        urls = '\r\n'.join(self.messages)
+        print('-------------------urls----------------------')
+        if len(self.messages) > 0:
+            print(urls)
+        print('---------------------------------------------')
+
+        msg = TextSendMessage(text=self.date.date().isoformat() + '\r\n' + urls )
+
+        for userId in userIds:
+            try:
+                self.line_bot_api.push_message(userId, msg)
+            except LineBotApiError as e:
+                print(e)
 
     def do_job(self):
         queue = self.queue
@@ -81,8 +105,12 @@ class App(object):
                             today = data[-1]
                             warning = "do not pass transaction, transaction count: {}, price: {}".format(
                                 today["transaction_count"], today["price"])
+                        link = graphlink(code)
                         print("{} success: {}, {}, {}".format(
-                            code, ",".join(passed_filters), warning, graphlink(code)))
+                            code, ",".join(passed_filters), warning, link))
+                        if warning == "":
+                            self.messages.append(link)
+
             except Exception as exception:
                 with lock:
                     print(exception)

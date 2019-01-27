@@ -2,7 +2,7 @@
 import json
 import ssl
 from datetime import timedelta
-
+import os
 import numpy
 
 from six.moves import urllib
@@ -21,6 +21,13 @@ HEADERS = {
 
 class HiStock(object):
     def __init__(self, stock_code, end_date):
+        try:
+            if not os.path.exists(".history"):
+                os.makedirs(".history")
+        except Exception as exception:
+            print(exception)
+
+
         self.stock_code = stock_code
         self.end_date = end_date
         self.result = []
