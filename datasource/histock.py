@@ -27,19 +27,21 @@ class HiStock(object):
         except Exception as exception:
             print(exception)
 
-
+        # self.fs = fs
         self.stock_code = stock_code
         self.end_date = end_date
         self.result = []
 
     def read(self):
-        stock_file = open(".history/histock_" + self.stock_code + ".json")
+        # return self.fs.read(".history/histock_" + self.stock_code)
+        stock_file = open(".history/histock_" + self.stock_code)
         raw = stock_file.read()
         stock_file.close()
         return raw
 
     def write(self, raw):
-        stock_file = open(".history/histock_" + self.stock_code + ".json", "w")
+        # self.fs.write(".history/histock_" + self.stock_code, raw)
+        stock_file = open(".history/histock_" + self.stock_code, "w")
         stock_file.write(raw)
         stock_file.close()
 

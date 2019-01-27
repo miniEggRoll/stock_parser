@@ -13,7 +13,7 @@ from linebot import LineBotApi
 from linebot.models import TextSendMessage
 from linebot.exceptions import LineBotApiError
 
-userIds = ['U0b9a29328a8edbbedfd0400027099c1e', 'U2c645d5f7b78b06a42570d9cfa368531']
+userIds = ['U0b9a29328a8edbbedfd0400027099c1e', 'U2c645d5f7b78b06a42570d9cfa368531', 'Ua45a5985163a546d23056426944546ed']
 
 class App(object):
     def __init__(self, lock):
